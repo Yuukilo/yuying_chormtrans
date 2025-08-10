@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语影翻译扩展加载测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-text {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #FFC107;
+            color: #FFC107;
+        }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 语影翻译扩展加载测试</h1>
+        
+        <div class="instructions">
+            <h3>📋 测试步骤</h3>
+            <ol>
+                <li>确保已经构建了扩展程序 (运行 <code>npm run build</code>)</li>
+                <li>打开Chrome浏览器，进入扩展程序管理页面 (<code>chrome://extensions/</code>)</li>
+                <li>开启"开发者模式"</li>
+                <li>点击"加载已解压的扩展程序"</li>
+                <li>选择项目的 <code>dist</code> 文件夹</li>
+                <li>检查扩展是否成功加载，没有错误信息</li>
+                <li>在此页面测试翻译功能</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 扩展状态检测</h3>
+            <button onclick="checkExtensionStatus()">检查扩展状态</button>
+            <div id="extensionStatus" class="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 翻译测试文本</h3>
+            <p>选中下面的文本，右键选择"语影翻译"或使用快捷键测试翻译功能：</p>
+            
+            <div class="test-text">
+                Hello, world! This is a test sentence for the Yuying Translation Extension. 
+                The extension should be able to translate this text into Chinese.
+            </div>
+            
+            <div class="test-text">
+                Artificial Intelligence is transforming the way we work and live. 
+                Machine learning algorithms can process vast amounts of data to identify patterns and make predictions.
+            </div>
+            
+            <div class="test-text">
+                The quick brown fox jumps over the lazy dog. 
+                This sentence contains every letter of the English alphabet.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚙️ 功能测试</h3>
+            <button onclick="testTranslationAPI()">测试翻译API</button>
+            <button onclick="testSettings()">测试设置功能</button>
+            <button onclick="testCache()">测试缓存功能</button>
+            <div id="testResults" class="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试结果</h3>
+            <div id="overallResults" class="test-results">
+                等待测试结果...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            extensionLoaded: false,
+            apiWorking: false,
+            settingsWorking: false,
+            cacheWorking: false
+        };
+
+        function updateOverallResults() {
+            const results = document.getElementById('overallResults');
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(Boolean).length;
+            
+            results.innerHTML = `
+                <h4>总体测试结果: ${passed}/${total} 通过</h4>
+                <div class="${passed === total ? 'success' : passed > 0 ? 'warning' : 'error'}">
+                    扩展加载: ${testResults.extensionLoaded ? '✅ 通过' : '❌ 失败'}<br>
+                    API功能: ${testResults.apiWorking ? '✅ 通过' : '❌ 失败'}<br>
+                    设置功能: ${testResults.settingsWorking ? '✅ 通过' : '❌ 失败'}<br>
+                    缓存功能: ${testResults.cacheWorking ? '✅ 通过' : '❌ 失败'}
+                </div>
+            `;
+        }
+
+        function checkExtensionStatus() {
+            const statusDiv = document.getElementById('extensionStatus');
+            
+            // 检查是否有Chrome扩展API
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Chrome扩展API不可用<br>
+                        请确保在Chrome浏览器中打开此页面，并且扩展已正确加载
+                    </div>
+                `;
+                testResults.extensionLoaded = false;
+                updateOverallResults();
+                return;
+            }
+
+            // 尝试与扩展通信
+            chrome.runtime.sendMessage({action: 'getStatus'}, (response) => {
+                if (chrome.runtime.lastError) {
+                    statusDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 扩展通信失败: ${chrome.runtime.lastError.message}<br>
+                            请检查扩展是否正确加载
+                        </div>
+                    `;
+                    testResults.extensionLoaded = false;
+                } else {
+                    statusDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 扩展加载成功<br>
+                            状态: ${JSON.stringify(response, null, 2)}
+                        </div>
+                    `;
+                    testResults.extensionLoaded = true;
+                }
+                updateOverallResults();
+            });
+        }
+
+        function testTranslationAPI() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<div class="warning">🔄 正在测试翻译API...</div>';
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                resultsDiv.innerHTML = '<div class="error">❌ Chrome扩展API不可用</div>';
+                testResults.apiWorking = false;
+                updateOverallResults();
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'translate',
+                text: 'Hello, world!',
+                options: { targetLang: 'zh-CN' }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 翻译API测试失败: ${chrome.runtime.lastError.message}
+                        </div>
+                    `;
+                    testResults.apiWorking = false;
+                } else if (response && response.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 翻译API测试成功<br>
+                            原文: Hello, world!<br>
+                            译文: ${response.translatedText || '未返回翻译结果'}
+                        </div>
+                    `;
+                    testResults.apiWorking = true;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 翻译API返回错误: ${response ? response.error : '未知错误'}
+                        </div>
+                    `;
+                    testResults.apiWorking = false;
+                }
+                updateOverallResults();
+            });
+        }
+
+        function testSettings() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<div class="warning">🔄 正在测试设置功能...</div>';
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                resultsDiv.innerHTML = '<div class="error">❌ Chrome扩展API不可用</div>';
+                testResults.settingsWorking = false;
+                updateOverallResults();
+                return;
+            }
+
+            chrome.runtime.sendMessage({action: 'getSettings'}, (response) => {
+                if (chrome.runtime.lastError) {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 设置功能测试失败: ${chrome.runtime.lastError.message}
+                        </div>
+                    `;
+                    testResults.settingsWorking = false;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 设置功能测试成功<br>
+                            当前设置: ${JSON.stringify(response, null, 2)}
+                        </div>
+                    `;
+                    testResults.settingsWorking = true;
+                }
+                updateOverallResults();
+            });
+        }
+
+        function testCache() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<div class="warning">🔄 正在测试缓存功能...</div>';
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                resultsDiv.innerHTML = '<div class="error">❌ Chrome扩展API不可用</div>';
+                testResults.cacheWorking = false;
+                updateOverallResults();
+                return;
+            }
+
+            chrome.runtime.sendMessage({action: 'getCacheStats'}, (response) => {
+                if (chrome.runtime.lastError) {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 缓存功能测试失败: ${chrome.runtime.lastError.message}
+                        </div>
+                    `;
+                    testResults.cacheWorking = false;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 缓存功能测试成功<br>
+                            缓存统计: ${JSON.stringify(response, null, 2)}
+                        </div>
+                    `;
+                    testResults.cacheWorking = true;
+                }
+                updateOverallResults();
+            });
+        }
+
+        // 页面加载时自动检查扩展状态
+        window.addEventListener('load', () => {
+            setTimeout(checkExtensionStatus, 1000);
+            updateOverallResults();
+        });
+    </script>
+</body>
+</html>

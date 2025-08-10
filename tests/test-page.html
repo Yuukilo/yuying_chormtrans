@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语影翻译插件测试页面</title>
+    <script src="简化测试脚本.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .test-button:hover {
+            background: #45a049;
+        }
+        
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background-color: #4CAF50; }
+        .status-error { background-color: #f44336; }
+        .status-warning { background-color: #ff9800; }
+        .status-pending { background-color: #9e9e9e; }
+        
+        .test-text {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .api-config {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .floating-test-text {
+            position: relative;
+            background: #f0f8ff;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-size: 18px;
+            line-height: 1.6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-test-text:hover {
+            background: #e8f5e8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .floating-test-text::before {
+            content: "💡 选择此文本测试浮动框功能";
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 语影翻译插件测试中心</h1>
+        <p>完整的功能测试和验证平台</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 测试配置</h2>
+        <div class="api-config">
+            <h3>🔑 API配置信息</h3>
+            <p><strong>API提供商:</strong> DeepSeek</p>
+            <p><strong>API密钥:</strong> sk-9adc3a701ba64a4d9df52408da8bb052</p>
+            <p><strong>目标语言:</strong> 简体中文 (zh-CN)</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 测试控制</h2>
+        <button id="runAllTests" class="test-button">运行完整测试</button>
+        <button id="runApiTest" class="test-button">测试API配置</button>
+        <button id="runTranslationTest" class="test-button">测试翻译功能</button>
+        <button id="clearConsole" class="test-button" style="background: #f44336;">清空控制台</button>
+        
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p id="progressText">准备开始测试...</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔤 翻译测试文本</h2>
+        <div class="floating-test-text" id="testText1">
+            Hello, this is a test for translation functionality. Please select this text to test the floating translation box.
+        </div>
+        <div class="floating-test-text" id="testText2">
+            The quick brown fox jumps over the lazy dog. This sentence contains every letter of the English alphabet.
+        </div>
+        <div class="floating-test-text" id="testText3">
+            Artificial Intelligence is transforming the way we work, learn, and communicate in the modern world.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="testResults" class="test-results">
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>API配置测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>基础翻译功能测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>浮动框显示测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>设置面板功能测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>快捷键功能测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>缓存机制测试 - 等待执行</span>
+            </div>
+            <div class="result-item">
+                <span class="status-indicator status-pending"></span>
+                <span>多语言支持测试 - 等待执行</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🖥️ 控制台输出</h2>
+        <div id="consoleOutput" class="console-output">
+            等待测试开始...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📖 使用说明</h2>
+        <ol>
+            <li><strong>确保扩展已加载:</strong> 在Chrome中打开 chrome://extensions/，确保"语影翻译插件"已启用</li>
+            <li><strong>运行测试:</strong> 点击"运行完整测试"按钮开始自动化测试</li>
+            <li><strong>手动测试浮动框:</strong> 选择上方的测试文本，观察是否出现翻译浮动框</li>
+            <li><strong>检查设置面板:</strong> 点击扩展图标，验证设置面板功能</li>
+            <li><strong>测试快捷键:</strong> 使用 Alt+T 切换翻译功能，Alt+S 打开设置</li>
+        </ol>
+    </div>
+    
+    <script>
+        // 控制台输出管理
+        const consoleOutput = document.getElementById('consoleOutput');
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        
+        function appendToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#feca57' : '#ffffff';
+            consoleOutput.innerHTML += `<span style="color: #888">[${timestamp}]</span> <span style="color: ${color}">${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+        
+        // 进度条管理
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        function updateProgress(percentage, text) {
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = text;
+        }
+        
+        // 测试结果更新
+        function updateTestResult(testIndex, status, message) {
+            const resultItems = document.querySelectorAll('.result-item');
+            if (resultItems[testIndex]) {
+                const indicator = resultItems[testIndex].querySelector('.status-indicator');
+                const text = resultItems[testIndex].querySelector('span:last-child');
+                
+                indicator.className = `status-indicator status-${status}`;
+                text.textContent = message;
+            }
+        }
+        
+        // 按钮事件绑定
+        document.getElementById('runAllTests').addEventListener('click', async () => {
+            console.log('🚀 开始运行完整测试套件');
+            updateProgress(0, '初始化测试环境...');
+            
+            // 调用新的测试脚本
+            if (window.runExtensionTest) {
+                window.runExtensionTest();
+            } else {
+                console.error('❌ 测试脚本未加载，请刷新页面重试');
+                updateProgress(0, '测试失败：测试脚本未加载');
+            }
+        });
+        
+        document.getElementById('runApiTest').addEventListener('click', async () => {
+            console.log('🔑 开始API配置测试');
+            updateProgress(20, '测试API配置...');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                console.error('❌ Chrome扩展API不可用');
+                updateTestResult(0, 'error', 'API配置测试 - 失败：扩展API不可用');
+                return;
+            }
+            
+            try {
+                const settings = {
+                    apiKey: 'sk-9adc3a701ba64a4d9df52408da8bb052',
+                    apiProvider: 'deepseek',
+                    targetLanguage: 'zh-CN'
+                };
+                
+                const response = await chrome.runtime.sendMessage({
+                    type: 'UPDATE_SETTINGS',
+                    settings: settings
+                });
+                
+                if (response && response.success) {
+                    console.log('✅ API配置成功');
+                    updateTestResult(0, 'success', 'API配置测试 - 成功');
+                    updateProgress(100, 'API配置测试完成');
+                } else {
+                    console.error('❌ API配置失败');
+                    updateTestResult(0, 'error', 'API配置测试 - 失败');
+                }
+            } catch (error) {
+                console.error('❌ API配置测试出错:', error);
+                updateTestResult(0, 'error', 'API配置测试 - 错误: ' + error.message);
+            }
+        });
+        
+        document.getElementById('runTranslationTest').addEventListener('click', async () => {
+            console.log('🔤 开始翻译功能测试');
+            updateProgress(40, '测试翻译功能...');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                console.error('❌ Chrome扩展API不可用');
+                updateTestResult(1, 'error', '翻译功能测试 - 失败：扩展API不可用');
+                return;
+            }
+            
+            try {
+                const testText = 'Hello, this is a test for translation functionality.';
+                const response = await chrome.runtime.sendMessage({
+                    type: 'TRANSLATE_TEXT',
+                    text: testText,
+                    targetLanguage: 'zh-CN'
+                });
+                
+                if (response && response.success && response.translation) {
+                    console.log('✅ 翻译功能正常');
+                    console.log(`原文: ${testText}`);
+                    console.log(`译文: ${response.translation}`);
+                    updateTestResult(1, 'success', '翻译功能测试 - 成功');
+                    updateProgress(100, '翻译功能测试完成');
+                } else {
+                    console.error('❌ 翻译功能失败:', response.message);
+                    updateTestResult(1, 'error', '翻译功能测试 - 失败');
+                }
+            } catch (error) {
+                console.error('❌ 翻译功能测试出错:', error);
+                updateTestResult(1, 'error', '翻译功能测试 - 错误: ' + error.message);
+            }
+        });
+        
+        document.getElementById('clearConsole').addEventListener('click', () => {
+            consoleOutput.innerHTML = '控制台已清空...\n';
+            updateProgress(0, '准备开始测试...');
+        });
+        
+        // 文本选择事件监听
+        document.querySelectorAll('.floating-test-text').forEach((element, index) => {
+            element.addEventListener('mouseup', () => {
+                const selection = window.getSelection();
+                if (selection.toString().length > 0) {
+                    console.log(`📝 文本已选择: "${selection.toString()}"`);                    console.log('🔍 检查是否显示翻译浮动框...');
+                    updateTestResult(2, 'warning', '浮动框测试 - 请检查是否显示翻译框');
+                }
+            });
+        });
+        
+        // 页面加载完成提示
+        window.addEventListener('load', () => {
+            console.log('📄 测试页面加载完成');
+            console.log('💡 提示：请确保语影翻译插件已在Chrome中启用');
+            console.log('🎯 点击"运行完整测试"开始自动化测试');
+        });
+    </script>
+</body>
+</html>

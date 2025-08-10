@@ -1,0 +1,306 @@
+name: Build and Release Chrome Extension
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: false
+        type: string
+
+jobs:
+  # 代码质量检查
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run type check
+        run: npm run check
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  # 构建扩展
+  build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      artifact-name: ${{ steps.version.outputs.artifact-name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.version }}" != "" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "artifact-name=yuying-translation-extension-v$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Update manifest version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            manifest.version = '$VERSION';
+            fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2));
+            console.log('Updated manifest.json version to:', '$VERSION');
+          "
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Create extension package
+        run: |
+          mkdir -p release
+          cd dist
+          zip -r ../release/${{ steps.version.outputs.artifact-name }}.zip .
+          cd ..
+          echo "Extension packaged as: ${{ steps.version.outputs.artifact-name }}.zip"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.version.outputs.artifact-name }}
+          path: |
+            release/${{ steps.version.outputs.artifact-name }}.zip
+            dist/
+          retention-days: 30
+
+  # 安全扫描
+  security-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  # 创建GitHub Release（仅在推送标签时）
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: ./artifacts
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # 获取上一个标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "changelog=Initial release of Yuying Translation Extension" >> $GITHUB_OUTPUT
+          else
+            # 生成变更日志
+            CHANGELOG=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|fix|docs|style|refactor|perf|test|chore)" | head -20)
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="- Various improvements and bug fixes"
+            fi
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "语影翻译插件 ${{ github.ref_name }}"
+          body: |
+            ## 🎉 语影翻译插件 ${{ github.ref_name }} 发布
+            
+            ### 📦 安装方法
+            
+            1. 下载下方的 `${{ needs.build.outputs.artifact-name }}.zip` 文件
+            2. 解压到本地文件夹
+            3. 打开Chrome浏览器，进入 `chrome://extensions/`
+            4. 开启"开发者模式"
+            5. 点击"加载已解压的扩展程序"，选择解压后的文件夹
+            
+            ### 🔄 更新内容
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### 🛠️ 技术信息
+            
+            - **版本**: ${{ needs.build.outputs.version }}
+            - **构建时间**: ${{ github.event.head_commit.timestamp }}
+            - **提交**: ${{ github.sha }}
+            
+            ### 📋 系统要求
+            
+            - Chrome 88+ 或其他基于Chromium的浏览器
+            - 需要网络连接以使用翻译API
+            
+            ### 🐛 问题反馈
+            
+            如果您遇到任何问题，请在 [Issues](https://github.com/${{ github.repository }}/issues) 页面提交反馈。
+          files: |
+            artifacts/release/${{ needs.build.outputs.artifact-name }}.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+          generate_release_notes: true
+
+  # 部署到GitHub Pages（可选）
+  deploy-docs:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build documentation
+        run: |
+          mkdir -p _site
+          cp -r docs/* _site/ 2>/dev/null || true
+          cp README.md _site/index.md 2>/dev/null || true
+          
+          # 创建简单的HTML页面
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>语影翻译插件</title>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  .header { text-align: center; margin-bottom: 40px; }
+                  .download-btn { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px; }
+                  .feature { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background: #f8f9fa; }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>🌐 语影翻译插件</h1>
+                  <p>智能网页翻译Chrome扩展</p>
+                  <a href="https://github.com/${{ github.repository }}/releases/latest" class="download-btn">📥 下载最新版本</a>
+                  <a href="https://github.com/${{ github.repository }}" class="download-btn">📚 查看源码</a>
+              </div>
+              
+              <div class="feature">
+                  <h3>✨ 主要功能</h3>
+                  <ul>
+                      <li>🔄 智能网页翻译</li>
+                      <li>🖼️ OCR图片翻译</li>
+                      <li>🎯 多种翻译API支持</li>
+                      <li>⚡ 快速响应和缓存</li>
+                      <li>🎨 美观的用户界面</li>
+                  </ul>
+              </div>
+              
+              <div class="feature">
+                  <h3>📦 安装方法</h3>
+                  <ol>
+                      <li>下载最新版本的扩展包</li>
+                      <li>解压到本地文件夹</li>
+                      <li>打开Chrome浏览器，进入 chrome://extensions/</li>
+                      <li>开启"开发者模式"</li>
+                      <li>点击"加载已解压的扩展程序"，选择解压后的文件夹</li>
+                  </ol>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # 通知
+  notify:
+    if: always()
+    needs: [lint-and-test, build, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify on success
+        if: needs.build.result == 'success'
+        run: |
+          echo "✅ 构建成功完成！"
+          echo "版本: ${{ needs.build.outputs.version }}"
+          echo "构件: ${{ needs.build.outputs.artifact-name }}"
+
+      - name: Notify on failure
+        if: needs.build.result == 'failure' || needs.lint-and-test.result == 'failure'
+        run: |
+          echo "❌ 构建失败！"
+          echo "请检查日志并修复问题。"
+          exit 1

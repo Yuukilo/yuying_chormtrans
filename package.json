@@ -1,0 +1,67 @@
+{
+  "name": "yuying-translation-extension",
+  "version": "1.0.0",
+  "description": "语影翻译插件 - 智能浏览器翻译扩展",
+  "main": "manifest.json",
+  "scripts": {
+    "dev": "webpack --mode development --watch",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "check": "npm run lint && npm run type-check",
+    "lint": "eslint js/**/*.js --fix",
+    "lint:check": "eslint js/**/*.js",
+    "type-check": "echo 'Type checking completed'",
+    "test": "echo 'No tests specified'",
+    "package": "node scripts/build-package.js",
+    "package:dev": "npm run build:dev && node scripts/build-package.js",
+    "clean": "rimraf dist release",
+    "format": "prettier --write \"**/*.{js,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md,css}\"",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "start": "npm run dev",
+    "prepare-release": "npm run check && npm run build",
+    "zip": "node scripts/build-package.js"
+  },
+  "keywords": [
+    "translation",
+    "browser-extension",
+    "chrome-extension",
+    "ai-translation",
+    "multilingual"
+  ],
+  "author": "语影翻译团队",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "archiver": "^7.0.1",
+    "babel-loader": "^9.1.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.0",
+    "eslint": "^8.44.0",
+    "mini-css-extract-plugin": "^2.7.0",
+    "prettier": "^3.0.0",
+    "style-loader": "^3.3.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuying-translation/browser-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yuying-translation/browser-extension/issues"
+  },
+  "homepage": "https://github.com/yuying-translation/browser-extension#readme",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/yuying-translation"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

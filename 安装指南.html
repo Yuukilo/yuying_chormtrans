@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语影翻译扩展 - 详细安装指南</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        .step {
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .step h3 {
+            color: #007bff;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .code {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 3px solid #007bff;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .screenshot {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button.success {
+            background-color: #28a745;
+        }
+        .button.success:hover {
+            background-color: #218838;
+        }
+        .troubleshooting {
+            background-color: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .checklist {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .checklist li:before {
+            content: '✓';
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 语影翻译扩展安装指南</h1>
+            <p>跟随本指南，轻松安装和配置您的翻译扩展</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">1</span>准备工作</h3>
+            <p>在开始安装之前，请确保您已完成以下准备工作：</p>
+            <div class="checklist">
+                <ul>
+                    <li>已安装 Chrome 浏览器（版本 88 或更高）</li>
+                    <li>已安装 Node.js（版本 16 或更高）</li>
+                    <li>已下载或克隆项目代码到本地</li>
+                    <li>已在项目目录中安装依赖包</li>
+                </ul>
+            </div>
+            <div class="code">
+                # 安装依赖包<br>
+                npm install
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>编译扩展</h3>
+            <p>在项目根目录中运行编译命令：</p>
+            <div class="code">
+                npm run dev
+            </div>
+            <div class="success">
+                <strong>✅ 编译成功标志：</strong><br>
+                • 看到 "background compiled successfully" 消息<br>
+                • 看到 "web-scripts compiled successfully" 消息<br>
+                • dist 目录被创建并包含所有必要文件
+            </div>
+            <div class="warning">
+                <strong>⚠️ 注意：</strong> 如果编译失败，请检查 Node.js 版本和依赖包是否正确安装。
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>打开 Chrome 扩展管理页</h3>
+            <p>有两种方式打开扩展管理页：</p>
+            <p><strong>方式一：</strong>在地址栏输入</p>
+            <div class="code">
+                chrome://extensions/
+            </div>
+            <p><strong>方式二：</strong>通过菜单</p>
+            <ol>
+                <li>点击 Chrome 右上角的三点菜单</li>
+                <li>选择 "更多工具" → "扩展程序"</li>
+            </ol>
+            <div class="screenshot">
+                📸 这里应该显示 Chrome 扩展管理页面的截图
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span>启用开发者模式</h3>
+            <p>在扩展管理页面的右上角，找到并开启 "开发者模式" 开关。</p>
+            <div class="screenshot">
+                📸 这里应该显示开发者模式开关的截图
+            </div>
+            <div class="success">
+                <strong>✅ 开启成功标志：</strong><br>
+                页面上会出现 "加载已解压的扩展程序"、"打包扩展程序" 等按钮
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">5</span>加载扩展</h3>
+            <p>点击 "加载已解压的扩展程序" 按钮，然后：</p>
+            <ol>
+                <li>在文件选择对话框中，导航到项目目录</li>
+                <li>选择 <strong>dist</strong> 文件夹（不是项目根目录）</li>
+                <li>点击 "选择文件夹" 确认</li>
+            </ol>
+            <div class="warning">
+                <strong>⚠️ 重要：</strong> 必须选择 dist 文件夹，而不是项目根目录！
+            </div>
+            <div class="screenshot">
+                📸 这里应该显示文件选择对话框的截图
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">6</span>验证安装</h3>
+            <p>如果安装成功，您应该看到：</p>
+            <div class="checklist">
+                <ul>
+                    <li>扩展出现在扩展列表中</li>
+                    <li>扩展名称为 "语影翻译插件"</li>
+                    <li>扩展状态为 "已启用"</li>
+                    <li>Chrome 工具栏出现扩展图标</li>
+                </ul>
+            </div>
+            <div class="success">
+                <strong>🎉 安装成功！</strong> 您现在可以开始使用语影翻译扩展了。
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">7</span>功能测试</h3>
+            <p>安装完成后，建议进行功能测试：</p>
+            <ol>
+                <li>点击扩展图标，查看是否显示 "ON" 标记</li>
+                <li>打开测试页面验证功能</li>
+                <li>尝试选择网页文本进行翻译</li>
+            </ol>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="test-extension-simple.html" class="button">🧪 打开测试页面</a>
+                <a href="extension-install-checker.html" class="button success">🔍 运行安装检查器</a>
+            </div>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>🔧 常见问题解决</h3>
+            
+            <h4>问题1：扩展加载失败</h4>
+            <div class="error">
+                <strong>错误信息：</strong> "无法为脚本加载 JavaScript 'js/content.js'"
+            </div>
+            <p><strong>解决方案：</strong></p>
+            <ol>
+                <li>确认已运行 <code>npm run dev</code> 编译</li>
+                <li>检查 dist/js 目录是否包含 content.js 文件</li>
+                <li>如果文件缺失，重新运行编译命令</li>
+                <li>在扩展管理页面点击 "重新加载" 扩展</li>
+            </ol>
+
+            <h4>问题2：扩展图标不显示激活状态</h4>
+            <p><strong>解决方案：</strong></p>
+            <ol>
+                <li>点击扩展图标激活翻译功能</li>
+                <li>查看图标是否显示 "ON" 标记</li>
+                <li>如果仍无变化，刷新页面重试</li>
+            </ol>
+
+            <h4>问题3：测试页面显示 "Chrome扩展API不可用"</h4>
+            <p><strong>解决方案：</strong></p>
+            <ol>
+                <li>确认在 Chrome 浏览器中打开测试页面</li>
+                <li>确认扩展已正确安装并启用</li>
+                <li>使用安装检查器诊断问题</li>
+                <li>检查浏览器控制台是否有错误信息</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">8</span>配置和使用</h3>
+            <p>扩展安装成功后，您可以：</p>
+            <div class="checklist">
+                <ul>
+                    <li>点击扩展图标打开设置面板</li>
+                    <li>配置 API 密钥（已预配置 DeepSeek）</li>
+                    <li>选择目标翻译语言</li>
+                    <li>调整浮动框位置和样式</li>
+                    <li>使用快捷键 Alt+T 切换翻译功能</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+            <h3>🎯 快速链接</h3>
+            <a href="extension-install-checker.html" class="button">🔍 安装状态检查</a>
+            <a href="test-extension-simple.html" class="button">🧪 功能测试</a>
+            <a href="扩展加载指南.md" class="button">📖 技术文档</a>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; text-align: center;">
+            <p><strong>💡 提示：</strong> 如果遇到任何问题，请先使用安装检查器进行诊断，它会提供详细的错误信息和解决建议。</p>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后的提示
+        window.addEventListener('load', () => {
+            console.log('安装指南页面已加载');
+            
+            // 检查是否在Chrome中打开
+            if (typeof chrome === 'undefined') {
+                const warning = document.createElement('div');
+                warning.className = 'warning';
+                warning.innerHTML = '<strong>⚠️ 注意：</strong> 建议在 Chrome 浏览器中查看此指南以获得最佳体验。';
+                document.querySelector('.container').insertBefore(warning, document.querySelector('.header').nextSibling);
+            }
+        });
+    </script>
+</body>
+</html>

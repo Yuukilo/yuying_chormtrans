@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "语影翻译插件",
+  "version": "1.0.0",
+  "description": "专为外语学习者设计的非覆盖式双语对照翻译插件，通过智能浮动框提供高质量翻译体验",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://api.deepseek.com/*",
+    "https://dashscope.aliyuncs.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://aip.baidubce.com/*"
+  ],
+  "background": {
+    "service_worker": "js/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "语影翻译",
+    "default_icon": {
+      "16": "icons/icon16.svg",
+      "32": "icons/icon32.svg",
+      "48": "icons/icon48.svg",
+      "128": "icons/icon128.svg"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.svg",
+    "32": "icons/icon32.svg",
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
+  },
+  "commands": {
+    "toggle-translation": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "切换翻译功能"
+    },
+    "open-settings": {
+      "suggested_key": {
+        "default": "Alt+S"
+      },
+      "description": "打开设置面板"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["css/floating-box.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

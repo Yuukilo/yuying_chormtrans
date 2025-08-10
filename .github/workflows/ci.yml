@@ -1,0 +1,89 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run type check
+        run: npm run check
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Validate manifest
+        run: |
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('dist/manifest.json', 'utf8'));
+            console.log('Manifest version:', manifest.version);
+            console.log('Manifest name:', manifest.name);
+            if (!manifest.version || !manifest.name) {
+              throw new Error('Invalid manifest.json');
+            }
+          "
+
+      - name: Check extension size
+        run: |
+          cd dist
+          SIZE=$(du -sh . | cut -f1)
+          echo "Extension size: $SIZE"
+          # 检查是否超过Chrome Web Store限制（通常是128MB）
+          SIZE_BYTES=$(du -sb . | cut -f1)
+          if [ $SIZE_BYTES -gt 134217728 ]; then
+            echo "Warning: Extension size exceeds 128MB limit"
+          fi
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for sensitive files
+        run: |
+          # 检查是否包含敏感文件
+          if find . -name "*.key" -o -name "*.pem" -o -name "*.p12" | grep -v node_modules | head -1; then
+            echo "Warning: Found potential sensitive files"
+          fi
+          
+          # 检查代码中是否有硬编码的密钥
+          if grep -r "sk-" --include="*.js" --include="*.ts" --exclude-dir=node_modules . | head -1; then
+            echo "Warning: Found potential API keys in code"
+          fi

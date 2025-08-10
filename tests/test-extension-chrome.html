@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome扩展加载测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .warning { background: rgba(255, 193, 7, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        .api-config {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Chrome扩展加载测试</h1>
+        
+        <div class="test-section">
+            <h2>📋 扩展加载状态检查</h2>
+            <div id="extension-status">检查中...</div>
+            <button onclick="checkExtensionStatus()">重新检查扩展状态</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🔑 API密钥配置</h2>
+            <div class="api-config">
+                <label for="deepseek-key">DeepSeek API密钥:</label>
+                <input type="password" id="deepseek-key" placeholder="输入DeepSeek API密钥" value="sk-9adc3a701ba64a4d9df52408da8bb052">
+                <button onclick="configureAPIKey()">保存API密钥</button>
+                <button onclick="testAPIConnection()">测试API连接</button>
+            </div>
+            <div id="api-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 功能测试</h2>
+            <input type="text" id="test-text" placeholder="输入要翻译的文本" value="Hello, world!">
+            <button onclick="testTranslation()">测试翻译功能</button>
+            <div id="translation-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 调试信息</h2>
+            <button onclick="getDebugInfo()">获取调试信息</button>
+            <pre id="debug-info"></pre>
+        </div>
+    </div>
+
+    <script>
+        // 检查扩展加载状态
+        async function checkExtensionStatus() {
+            const statusDiv = document.getElementById('extension-status');
+            
+            try {
+                // 检查Chrome扩展API是否可用
+                if (typeof chrome === 'undefined' || !chrome.runtime) {
+                    statusDiv.innerHTML = '<div class="status error">❌ Chrome扩展API不可用 - 请在Chrome浏览器中打开此页面</div>';
+                    return;
+                }
+
+                // 检查扩展ID
+                if (!chrome.runtime.id) {
+                    statusDiv.innerHTML = '<div class="status error">❌ 扩展未正确加载 - 扩展ID不存在</div>';
+                    return;
+                }
+
+                // 尝试与background script通信
+                try {
+                    const response = await new Promise((resolve, reject) => {
+                        chrome.runtime.sendMessage({type: 'ping'}, (response) => {
+                            if (chrome.runtime.lastError) {
+                                reject(chrome.runtime.lastError);
+                            } else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                    
+                    statusDiv.innerHTML = `
+                        <div class="status success">✅ 扩展加载成功</div>
+                        <div class="status info">📋 扩展ID: ${chrome.runtime.id}</div>
+                        <div class="status info">🔗 Background通信: 正常</div>
+                    `;
+                } catch (error) {
+                    statusDiv.innerHTML = `
+                        <div class="status warning">⚠️ 扩展已加载但background script无响应</div>
+                        <div class="status info">📋 扩展ID: ${chrome.runtime.id}</div>
+                        <div class="status error">❌ Background错误: ${error.message}</div>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 检查失败: ${error.message}</div>`;
+            }
+        }
+
+        // 配置API密钥
+        async function configureAPIKey() {
+            const apiKey = document.getElementById('deepseek-key').value;
+            const statusDiv = document.getElementById('api-status');
+            
+            if (!apiKey.trim()) {
+                statusDiv.innerHTML = '<div class="status error">❌ 请输入API密钥</div>';
+                return;
+            }
+
+            try {
+                // 通过扩展存储API密钥
+                if (chrome.storage && chrome.storage.sync) {
+                    await chrome.storage.sync.set({
+                        'deepseek_api_key': apiKey,
+                        'selected_api': 'deepseek'
+                    });
+                    statusDiv.innerHTML = '<div class="status success">✅ API密钥已保存到扩展存储</div>';
+                } else {
+                    // 如果扩展API不可用，尝试通过消息传递
+                    const response = await new Promise((resolve, reject) => {
+                        chrome.runtime.sendMessage({
+                            type: 'UPDATE_SETTINGS',
+                            settings: {
+                                deepseek_api_key: apiKey,
+                                selected_api: 'deepseek'
+                            }
+                        }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                reject(chrome.runtime.lastError);
+                            } else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                    statusDiv.innerHTML = '<div class="status success">✅ API密钥已通过消息传递保存</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 保存失败: ${error.message}</div>`;
+            }
+        }
+
+        // 测试API连接
+        async function testAPIConnection() {
+            const statusDiv = document.getElementById('api-status');
+            statusDiv.innerHTML = '<div class="status info">🔄 测试API连接中...</div>';
+            
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    chrome.runtime.sendMessage({
+                        type: 'TEST_API',
+                        provider: 'deepseek'
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            reject(chrome.runtime.lastError);
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+                
+                if (response && response.success) {
+                    statusDiv.innerHTML += '<div class="status success">✅ API连接测试成功</div>';
+                } else {
+                    statusDiv.innerHTML += `<div class="status error">❌ API连接测试失败: ${response?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML += `<div class="status error">❌ API测试失败: ${error.message}</div>`;
+            }
+        }
+
+        // 测试翻译功能
+        async function testTranslation() {
+            const text = document.getElementById('test-text').value;
+            const resultDiv = document.getElementById('translation-result');
+            
+            if (!text.trim()) {
+                resultDiv.innerHTML = '<div class="status error">❌ 请输入要翻译的文本</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="status info">🔄 翻译中...</div>';
+            
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    chrome.runtime.sendMessage({
+                        type: 'TRANSLATE_REQUEST',
+                        text: text,
+                        options: {
+                            provider: 'deepseek',
+                            promptType: 'general'
+                        }
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            reject(chrome.runtime.lastError);
+                        } else {
+                            resolve(response);
+                        }
+                    });
+                });
+                
+                if (response && response.success) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ 翻译成功</div>
+                        <div class="status info">📝 原文: ${text}</div>
+                        <div class="status info">🔄 译文: ${response.translatedText}</div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ 翻译失败: ${response?.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ 翻译失败: ${error.message}</div>`;
+            }
+        }
+
+        // 获取调试信息
+        async function getDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            
+            const debugInfo = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                chromeVersion: navigator.userAgent.match(/Chrome\/(\d+)/)?.[1] || 'Unknown',
+                extensionAPI: {
+                    available: typeof chrome !== 'undefined',
+                    runtime: typeof chrome?.runtime !== 'undefined',
+                    storage: typeof chrome?.storage !== 'undefined',
+                    tabs: typeof chrome?.tabs !== 'undefined'
+                },
+                extensionId: chrome?.runtime?.id || 'Not available',
+                manifestVersion: chrome?.runtime?.getManifest?.()?.manifest_version || 'Unknown'
+            };
+
+            // 尝试获取扩展设置
+            try {
+                if (chrome.storage && chrome.storage.sync) {
+                    const settings = await chrome.storage.sync.get(null);
+                    debugInfo.extensionSettings = settings;
+                }
+            } catch (error) {
+                debugInfo.extensionSettings = `Error: ${error.message}`;
+            }
+
+            debugDiv.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+
+        // 页面加载时自动检查
+        document.addEventListener('DOMContentLoaded', () => {
+            checkExtensionStatus();
+        });
+    </script>
+</body>
+</html>
